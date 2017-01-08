@@ -1,12 +1,9 @@
 package spring.kotlin.web.util
 
-import org.springframework.web.reactive.function.server.HandlerFunction
+import org.springframework.web.reactive.function.server.*
 import org.springframework.web.reactive.function.server.RequestPredicates.GET
 import org.springframework.web.reactive.function.server.RequestPredicates.POST
-import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.RouterFunctions.route
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 import java.lang.StringBuilder
 
@@ -39,8 +36,16 @@ class Path(val path: String) {
         children += innerPath
     }
 
-    fun get(f: () -> Handler) {
+    fun get(f: () -> HandlerFunction<ServerResponse>) {
         routes += route(GET(path), f())
+    }
+
+    fun handleGet(f: (ServerRequest) -> Mono<ServerResponse>) {
+        routes += customRoute(GET(path), f)
+    }
+
+    private fun customRoute(predicate: RequestPredicate, handlerFunction: (ServerRequest) -> Mono<ServerResponse>): Route {
+        return route(predicate, HandlerFunction { req -> handlerFunction(req) })
     }
 
     fun post(f: () -> Handler) {

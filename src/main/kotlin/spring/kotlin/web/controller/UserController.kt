@@ -17,17 +17,19 @@ class UserController : RouterFunction<ServerResponse> {
                 get { findAll() }
                 post { create() }
                 "/{login}"{
-                    get { findOne() }
+                    handleGet { findOne(it) }
                     post { createOne() }
                 }
                 "/info/{login}"{
-                    get { findOne() }
+                    handleGet { req ->
+                        ServerResponse.ok().body(fromPublisher(Mono.just(User("First: ${req.pathVariable("login")}"))))
+                    }
                     post { createOne() }
                 }
             }(request)
 
-    fun findOne() = HandlerFunction { req ->
-        ServerResponse.ok().body(fromPublisher(Mono.just(User("First: ${req.pathVariable("login")}"))))
+    fun findOne(req: ServerRequest): Mono<ServerResponse> {
+        return ServerResponse.ok().body(fromPublisher(Mono.just(User("First: ${req.pathVariable("login")}"))))
     }
 
     fun createOne() = HandlerFunction { req ->
