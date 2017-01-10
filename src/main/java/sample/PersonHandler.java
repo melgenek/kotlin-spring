@@ -9,4 +9,9 @@ public class PersonHandler {
 	public Mono<ServerResponse> getPerson(ServerRequest request) {
 		return Mono.empty();
 	}
+
+	public static Mono<ServerResponse> getOtherPerson(ServerRequest request) {
+		return Mono.empty();
+	}
+
 }

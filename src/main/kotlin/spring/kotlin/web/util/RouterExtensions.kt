@@ -39,6 +39,10 @@ class Path(val path: String) {
         routes += route(GET(path), f())
     }
 
+    fun GET2(f: (ServerRequest) -> Mono<ServerResponse>) {
+        routes += route(GET(path), HandlerFunction { req -> f(req) })
+    }
+
     fun HEAD(f: () -> HandlerFunction<ServerResponse>) {
         routes += route(RequestPredicates.HEAD(path), f())
     }
