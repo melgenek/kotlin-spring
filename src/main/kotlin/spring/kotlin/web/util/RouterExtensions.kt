@@ -1,11 +1,13 @@
 package spring.kotlin.web.util
 
+import org.springframework.core.io.Resource
 import org.springframework.web.reactive.function.server.*
 import org.springframework.web.reactive.function.server.RequestPredicates.GET
 import org.springframework.web.reactive.function.server.RequestPredicates.POST
 import org.springframework.web.reactive.function.server.RouterFunctions.route
 import reactor.core.publisher.Mono
 import java.lang.StringBuilder
+import kotlin.reflect.KFunction1
 
 
 operator fun String.invoke(init: Path.() -> Unit): Path {
@@ -18,13 +20,10 @@ fun path(url: String, init: Path.() -> Unit): Path {
     return path
 }
 
-typealias Handler = HandlerFunction<ServerResponse>
-typealias Route = RouterFunction<ServerResponse>
-
 class Path(val path: String) {
 
     val children = mutableListOf<Path>()
-    val routes = mutableListOf<Route>()
+    val routes = mutableListOf<RouterFunction<ServerResponse>>()
 
     operator fun String.invoke(init: Path.() -> Unit) {
         path(this, init)
@@ -36,32 +35,52 @@ class Path(val path: String) {
         children += innerPath
     }
 
-    fun get(f: () -> HandlerFunction<ServerResponse>) {
+    fun GET(f: () -> HandlerFunction<ServerResponse>) {
         routes += route(GET(path), f())
     }
 
-    fun handleGet(f: (ServerRequest) -> Mono<ServerResponse>) {
-        routes += customRoute(GET(path), f)
+    fun HEAD(f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.HEAD(path), f())
     }
 
-    private fun customRoute(predicate: RequestPredicate, handlerFunction: (ServerRequest) -> Mono<ServerResponse>): Route {
-        return route(predicate, HandlerFunction { req -> handlerFunction(req) })
-    }
-
-    fun post(f: () -> Handler) {
+    fun POST(f: () -> HandlerFunction<ServerResponse>) {
         routes += route(POST(path), f())
     }
 
-    fun router(): Route {
-        return routes().reduce(RouterFunction<*>::and) as Route
+    fun PUT(f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.PUT(path), f())
+    }
+
+    fun PATCH(f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.PATCH(path), f())
+    }
+
+    fun DELETE(f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.DELETE(path), f())
+    }
+
+    fun OPTIONS(f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.OPTIONS(path), f())
+    }
+
+    fun route(predicate: RequestPredicate, f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.path(path).and(predicate), f())
+    }
+
+    fun resources(location: Resource) {
+        routes += RouterFunctions.resources(path, location)
+    }
+
+    fun router(): RouterFunction<ServerResponse> {
+        return routes().reduce(RouterFunction<*>::and) as RouterFunction<ServerResponse>
     }
 
     operator fun invoke(request: ServerRequest): Mono<HandlerFunction<ServerResponse>> {
         return router().route(request)
     }
 
-    private fun routes(): List<Route> {
-        val allRoutes = mutableListOf<Route>()
+    private fun routes(): List<RouterFunction<ServerResponse>> {
+        val allRoutes = mutableListOf<RouterFunction<ServerResponse>>()
         allRoutes += routes
         for (child in children) {
             allRoutes += child.routes()
@@ -84,5 +103,4 @@ class Path(val path: String) {
             child.toString(sb)
         }
     }
-
 }

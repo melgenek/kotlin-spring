@@ -14,19 +14,17 @@ class UserController : RouterFunction<ServerResponse> {
 
     override fun route(request: ServerRequest) =
             "/user" {
-                get { findAll() }
-                post { create() }
+                GET { findAll() }
+                POST { create() }
                 "/{login}"{
-                    handleGet { findOne(it) }
-                    post { createOne() }
+                    POST { createOne() }
                 }
                 "/info/{login}"{
-                    handleGet { req ->
-                        ServerResponse.ok().body(fromPublisher(Mono.just(User("First: ${req.pathVariable("login")}"))))
-                    }
-                    post { createOne() }
+
+                    POST { createOne() }
                 }
             }(request)
+
 
     fun findOne(req: ServerRequest): Mono<ServerResponse> {
         return ServerResponse.ok().body(fromPublisher(Mono.just(User("First: ${req.pathVariable("login")}"))))
@@ -44,4 +42,8 @@ class UserController : RouterFunction<ServerResponse> {
         ServerResponse.ok().body(fromPublisher(Flux.just(User("post"), User("successful"))))
     }
 
+}
+
+fun findOther(req: ServerRequest): Mono<ServerResponse> {
+    return Mono.empty()
 }
