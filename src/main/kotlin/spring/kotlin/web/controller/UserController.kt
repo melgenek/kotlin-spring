@@ -19,53 +19,58 @@ class UserController : RouterFunction<ServerResponse> {
 
     override fun route(request: ServerRequest) =
             "/user" {
-                "custom" {
-                    route(contentType(APPLICATION_JSON)) { createOne() }
-                }
-                GET { findAll() }
-                POST { create() }
-                "/{login}"{
-                    GET2 { req ->
-                        Mono.empty()
+                GET(findAll())
+                "/empty" {
+                    GET { req ->
+                        ServerResponse.ok().body(fromPublisher(Flux.just(User("empty"))))
                     }
-                    GET2(::findOther)
-                    GET2(Companion::findOtherOne)
-                    GET2(this@UserController::findOne)
-                    GET2(personHandler::getPerson)
-                    GET2(PersonHandler::getOtherPerson)
-                    POST { createOne() }
                 }
-                "/info/{login}"{
-
-                    POST { createOne() }
+                "/login/{login}"{
+                    GET(::findOther)
+                }
+                "/controller"{
+                    GET(this@UserController::findOne)
+                }
+                "/comp"{
+                    GET(Companion::findOtherOne)
+                }
+                "/java"{
+                    GET(personHandler::getPerson)
+                }
+                "/javaStatic"{
+                    GET(PersonHandler::getOtherPerson)
+                }
+                (GET("/include") and contentType(APPLICATION_JSON)) {
+                    include()
+                }
+                "/**"{
+                    (!GET("/exclude")) {
+                        findAll()
+                    }
                 }
             }(request)
 
-
     fun findOne(req: ServerRequest): Mono<ServerResponse> {
-        return ServerResponse.ok().body(fromPublisher(Mono.just(User("First: ${req.pathVariable("login")}"))))
+        return ServerResponse.ok().body(fromPublisher(Mono.just(User("findOne"))))
     }
 
-    fun createOne() = HandlerFunction { req ->
-        ServerResponse.ok().body(fromPublisher(Mono.just(User("Created: ${req.pathVariable("login")}"))))
+    fun include() = HandlerFunction {
+        ServerResponse.ok().body(fromPublisher(Flux.just(User("include"))))
     }
 
     fun findAll() = HandlerFunction {
         ServerResponse.ok().body(fromPublisher(Flux.just(User("first"), User("second"))))
     }
 
-    fun create() = HandlerFunction {
-        ServerResponse.ok().body(fromPublisher(Flux.just(User("post"), User("successful"))))
-    }
-
     companion object {
         fun findOtherOne(req: ServerRequest): Mono<ServerResponse> {
-            return Mono.empty()
+            return ServerResponse.ok().body(fromPublisher(Flux.just(User("findOtherOne"))))
         }
     }
 
 }
 
 fun findOther(req: ServerRequest): Mono<ServerResponse> {
-    return Mono.empty()
+    return ServerResponse.ok().body(fromPublisher(Flux.just(User("findOther"))))
 }
+

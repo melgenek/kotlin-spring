@@ -2,12 +2,9 @@ package spring.kotlin.web.util
 
 import org.springframework.core.io.Resource
 import org.springframework.web.reactive.function.server.*
-import org.springframework.web.reactive.function.server.RequestPredicates.GET
-import org.springframework.web.reactive.function.server.RequestPredicates.POST
 import org.springframework.web.reactive.function.server.RouterFunctions.route
 import reactor.core.publisher.Mono
 import java.lang.StringBuilder
-import kotlin.reflect.KFunction1
 
 
 operator fun String.invoke(init: Path.() -> Unit): Path {
@@ -20,7 +17,7 @@ fun path(url: String, init: Path.() -> Unit): Path {
     return path
 }
 
-class Path(val path: String) {
+class Path(val base: String) {
 
     val children = mutableListOf<Path>()
     val routes = mutableListOf<RouterFunction<ServerResponse>>()
@@ -30,49 +27,35 @@ class Path(val path: String) {
     }
 
     fun path(path: String, init: Path.() -> Unit) {
-        val innerPath = Path(this.path + path)
+        val innerPath = Path(base + path)
         innerPath.init()
         children += innerPath
     }
 
-    fun GET(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(GET(path), f())
+    fun GET(subPath: String): RequestPredicate {
+        return RequestPredicates.GET(base + subPath)
     }
 
-    fun GET2(f: (ServerRequest) -> Mono<ServerResponse>) {
-        routes += route(GET(path), HandlerFunction { req -> f(req) })
+    fun GET(f: (ServerRequest) -> Mono<ServerResponse>) {
+        routes += route(RequestPredicates.GET(base), HandlerFunction { req -> f(req) })
     }
 
-    fun HEAD(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(RequestPredicates.HEAD(path), f())
+    fun GET(f: HandlerFunction<ServerResponse>) {
+        routes += route(RequestPredicates.GET(base), f)
     }
 
-    fun POST(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(POST(path), f())
+    operator fun RequestPredicate.invoke(f: () -> HandlerFunction<ServerResponse>) {
+        routes += route(this, f())
     }
 
-    fun PUT(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(RequestPredicates.PUT(path), f())
-    }
+    infix fun RequestPredicate.and(other: RequestPredicate): RequestPredicate = this.and(other)
 
-    fun PATCH(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(RequestPredicates.PATCH(path), f())
-    }
+    infix fun RequestPredicate.or(other: RequestPredicate): RequestPredicate = this.and(other)
 
-    fun DELETE(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(RequestPredicates.DELETE(path), f())
-    }
-
-    fun OPTIONS(f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(RequestPredicates.OPTIONS(path), f())
-    }
-
-    fun route(predicate: RequestPredicate, f: () -> HandlerFunction<ServerResponse>) {
-        routes += route(RequestPredicates.path(path).and(predicate), f())
-    }
+    operator fun RequestPredicate.not(): RequestPredicate = this.negate()
 
     fun resources(location: Resource) {
-        routes += RouterFunctions.resources(path, location)
+        routes += RouterFunctions.resources(base, location)
     }
 
     fun router(): RouterFunction<ServerResponse> {
@@ -94,7 +77,7 @@ class Path(val path: String) {
 
     override fun toString(): String {
         val sb = StringBuilder()
-        sb.append("$path\n")
+        sb.append("$base\n")
         for (child in children) {
             child.toString(sb)
         }
@@ -102,7 +85,7 @@ class Path(val path: String) {
     }
 
     private fun toString(sb: StringBuilder) {
-        sb.append("$path\n")
+        sb.append("$base\n")
         for (child in children) {
             child.toString(sb)
         }
