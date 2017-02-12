@@ -1,7 +1,8 @@
 package spring.kotlin.web.controller
 
 import org.springframework.http.MediaType.APPLICATION_JSON
-import org.springframework.web.reactive.function.BodyInsertersExtension.fromPublisher
+import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.fromPublisher
 import org.springframework.web.reactive.function.server.HandlerFunction
 import org.springframework.web.reactive.function.server.RequestPredicates.contentType
 import org.springframework.web.reactive.function.server.RouterFunction
@@ -13,6 +14,7 @@ import sample.PersonHandler
 import spring.kotlin.web.entity.User
 import spring.kotlin.web.util.invoke
 
+@Component
 class UserController : RouterFunction<ServerResponse> {
 
     val personHandler = PersonHandler()
