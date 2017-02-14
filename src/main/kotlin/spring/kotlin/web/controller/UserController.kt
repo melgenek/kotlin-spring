@@ -14,7 +14,7 @@ import sample.PersonHandler
 import spring.kotlin.web.entity.User
 import spring.kotlin.web.util.invoke
 
-@Component
+//@Component
 class UserController : RouterFunction<ServerResponse> {
 
     val personHandler = PersonHandler()

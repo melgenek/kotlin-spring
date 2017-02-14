@@ -7,7 +7,7 @@ import spring.kotlin.web.SampleService
 import spring.kotlin.web.UserService
 import spring.kotlin.web.util.KotlinRouterFunction
 
-@Component
+//@Component
 class AnotherUserController(val userService: UserService) : KotlinRouterFunction({
 
    val sampleService: SampleService? = null
