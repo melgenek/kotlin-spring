@@ -93,7 +93,7 @@ class RouterDsl {
 	}
 
 	//	fun json(f: (ServerRequest) -> Mono<ServerResponse>) {
-//		routes += RouterFunctions.route(RequestPredicates.json(), HandlerFunction { f(it) })
+//		dsl += RouterFunctions.route(RequestPredicates.json(), HandlerFunction { f(it) })
 //	}
 //
 	fun html(f: RequestPredicate.() -> Unit) {
@@ -101,7 +101,7 @@ class RouterDsl {
 	}
 //
 //	fun xml(f: (ServerRequest) -> Mono<ServerResponse>) {
-//		routes += RouterFunctions.route(RequestPredicates.xml(), HandlerFunction { f(it) })
+//		dsl += RouterFunctions.route(RequestPredicates.xml(), HandlerFunction { f(it) })
 //	}
 
 	fun resources(path: String, location: Resource) {
@@ -112,9 +112,9 @@ class RouterDsl {
 		routes += RouterFunctions.resources(lookupFunction)
 	}
 
-	@Suppress("UNCHECKED_CAST")
 	fun router(): RouterFunction<ServerResponse> {
-		return routes().reduce(org.springframework.web.reactive.function.server.RouterFunction<*>::and) as RouterFunction<ServerResponse>
+		println("CREATING ROUTES")
+		return routes().reduce(RouterFunction<ServerResponse>::and)
 	}
 
 	operator fun invoke(request: ServerRequest): Mono<HandlerFunction<ServerResponse>> {

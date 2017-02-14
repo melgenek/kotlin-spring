@@ -59,7 +59,7 @@ class Path(val base: String) {
     }
 
     fun router(): RouterFunction<ServerResponse> {
-        return routes().reduce(RouterFunction<*>::and) as RouterFunction<ServerResponse>
+        return routes().reduce(RouterFunction<ServerResponse>::and)
     }
 
     operator fun invoke(request: ServerRequest): Mono<HandlerFunction<ServerResponse>> {
