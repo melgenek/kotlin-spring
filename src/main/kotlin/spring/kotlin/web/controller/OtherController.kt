@@ -29,7 +29,3 @@ class OtherController : RouterFunction<ServerResponse> {
     fun findAll() = ServerResponse.ok().body(fromPublisher(Flux.just(User("first"), User("second"))))
 
 }
-
-fun RouterDsl.GET(f: (ServerRequest) -> Mono<ServerResponse>) {
-
-}

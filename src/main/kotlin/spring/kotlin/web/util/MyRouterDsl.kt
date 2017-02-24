@@ -92,18 +92,6 @@ class RouterDsl {
 		routes += RouterFunctions.route(RequestPredicates.queryParam(name, predicate), HandlerFunction { f(it) })
 	}
 
-	//	fun json(f: (ServerRequest) -> Mono<ServerResponse>) {
-//		dsl += RouterFunctions.route(RequestPredicates.json(), HandlerFunction { f(it) })
-//	}
-//
-	fun html(f: RequestPredicate.() -> Unit) {
-		RequestPredicates.html().apply(f)
-	}
-//
-//	fun xml(f: (ServerRequest) -> Mono<ServerResponse>) {
-//		dsl += RouterFunctions.route(RequestPredicates.xml(), HandlerFunction { f(it) })
-//	}
-
 	fun resources(path: String, location: Resource) {
 		routes += RouterFunctions.resources(path, location)
 	}
